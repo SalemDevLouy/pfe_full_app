@@ -1,0 +1,20 @@
+                                                        List of databases
+   Name    |  Owner   | Encoding | Locale Provider |   Collate   |    Ctype    | Locale | ICU Rules |     Access privileges      
+-----------+----------+----------+-----------------+-------------+-------------+--------+-----------+----------------------------
+ cloudmpdb | postgres | UTF8     | libc            | en_US.UTF-8 | en_US.UTF-8 |        |           | =Tc/postgres              +
+           |          |          |                 |             |             |        |           | postgres=CTc/postgres     +
+           |          |          |                 |             |             |        |           | cloudmp_user=CTc/postgres
+ mforu_app | postgres | UTF8     | libc            | en_US.UTF-8 | en_US.UTF-8 |        |           | 
+ mizaniya  | postgres | UTF8     | libc            | en_US.UTF-8 | en_US.UTF-8 |        |           | =Tc/postgres              +
+           |          |          |                 |             |             |        |           | postgres=CTc/postgres     +
+           |          |          |                 |             |             |        |           | mizaniya_user=CTc/postgres
+ postgres  | postgres | UTF8     | libc            | en_US.UTF-8 | en_US.UTF-8 |        |           | 
+ sonarqube | postgres | UTF8     | libc            | en_US.UTF-8 | en_US.UTF-8 |        |           | =Tc/postgres              +
+           |          |          |                 |             |             |        |           | postgres=CTc/postgres     +
+           |          |          |                 |             |             |        |           | sonaruser=CTc/postgres
+ template0 | postgres | UTF8     | libc            | en_US.UTF-8 | en_US.UTF-8 |        |           | =c/postgres               +
+           |          |          |                 |             |             |        |           | postgres=CTc/postgres
+ template1 | postgres | UTF8     | libc            | en_US.UTF-8 | en_US.UTF-8 |        |           | =c/postgres               +
+           |          |          |                 |             |             |        |           | postgres=CTc/postgres
+(7 rows)
+

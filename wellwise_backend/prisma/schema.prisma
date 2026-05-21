@@ -1,0 +1,621 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum AssessmentType {
+  ONBOARDING
+  WEEKLY
+  CUSTOM
+}
+
+enum AssessmentStatus {
+  DRAFT
+  SUBMITTED
+}
+
+enum RecommendationType {
+  PRODUCT
+  HABIT
+  PLAN
+}
+
+enum RecommendationAction {
+  SAVE
+  HIDE
+  RATE
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+enum HabitFrequency {
+  DAILY
+  WEEKLY
+  CUSTOM
+}
+
+enum NotificationType {
+  INFO
+  WARNING
+  SUCCESS
+  PROMOTION
+  SYSTEM
+}
+
+enum PlanStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum MembershipStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum ReportType {
+  SALES
+  USERS
+  PRODUCTS
+  HEALTH
+  CUSTOM
+}
+
+enum InsightType {
+  SUMMARY
+  RECOMMENDATION
+  RISK
+  TREND
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum GoalStatus {
+  ACTIVE
+  COMPLETED
+  PAUSED
+  ARCHIVED
+}
+
+enum ConnectionProvider {
+  GOOGLE
+  APPLE
+  FITBIT
+  STRAVA
+  GARMIN
+  MANUAL
+}
+
+model User {
+  id                    String                  @id @default(uuid()) @db.Uuid
+  name                  String
+  email                 String                  @unique
+  passwordHash          String
+  age                   Int?
+  gender                String?
+  role                  UserRole                @default(USER)
+  isEmailVerified       Boolean                 @default(false)
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  healthProfile         HealthProfile?
+  refreshTokens         RefreshToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens   PasswordResetToken[]
+  healthGoals           HealthGoal[]
+  preferences           HealthPreference[]
+  externalConnections   ExternalConnection[]
+  assessments           Assessment[]
+  wellnessScores        WellnessScore[]
+  recommendations       Recommendation[]
+  recommendationActions RecommendationInteraction[]
+  cart                  Cart?
+  orders                Order[]
+  reviews               Review[]
+  habits                Habit[]
+  planMemberships       PlanMembership[]
+  planProgresses        PlanProgress[]
+  notifications         Notification[]
+  uploadFiles           UploadFile[]
+  aiInsights            AIInsight[]
+  riskAnalyses          AIRiskAnalysis[]
+  generatedReports      AdminReport[]        @relation("ReportGeneratedBy")
+  wishlistItems         WishlistItem[]
+}
+
+model RefreshToken {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model EmailVerificationToken {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  verifiedAt DateTime?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model HealthProfile {
+  id               String   @id @default(uuid()) @db.Uuid
+  userId           String   @unique @db.Uuid
+  dateOfBirth      DateTime?
+  gender           String?
+  weightKg         Decimal? @db.Decimal(6, 2)
+  heightCm         Decimal? @db.Decimal(6, 2)
+  lifestyle        String?
+  sleepQuality     Int?
+  stressLevel      Int?
+  focusLevel       Int?
+  physicalActivity String?
+  nutritionHabits  String?
+  waterIntake      Int?
+  notes            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model HealthGoal {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @db.Uuid
+  title       String
+  targetValue String?
+  unit        String?
+  status      GoalStatus @default(ACTIVE)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+}
+
+model HealthPreference {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  key       String
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key])
+}
+
+model ExternalConnection {
+  id             String            @id @default(uuid()) @db.Uuid
+  userId         String            @db.Uuid
+  provider       ConnectionProvider
+  externalUserId String?
+  metadata       Json?
+  connectedAt    DateTime          @default(now())
+  revokedAt     DateTime?
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, provider])
+}
+
+model Assessment {
+  id          String           @id @default(uuid()) @db.Uuid
+  userId      String           @db.Uuid
+  type        AssessmentType
+  status      AssessmentStatus @default(DRAFT)
+  score       Decimal?         @db.Decimal(5, 2)
+  notes       String?
+  startedAt   DateTime         @default(now())
+  submittedAt DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers     AssessmentAnswer[]
+
+  @@index([userId, type, status])
+}
+
+model AssessmentAnswer {
+  id            String   @id @default(uuid()) @db.Uuid
+  assessmentId   String   @db.Uuid
+  questionKey    String
+  questionLabel  String
+  answer         Json
+  score         Decimal? @db.Decimal(5, 2)
+  createdAt      DateTime @default(now())
+  assessment     Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@index([assessmentId])
+}
+
+model WellnessScore {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  stress    Int
+  sleep     Int
+  focus     Int
+  global    Int
+  source    String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model Recommendation {
+  id          String               @id @default(uuid()) @db.Uuid
+  userId      String?              @db.Uuid
+  type        RecommendationType
+  title       String
+  description String
+  reason      String?
+  score       Decimal?             @db.Decimal(5, 2)
+  entityType  String?
+  entityId    String?
+  isActive    Boolean              @default(true)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  user        User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  actions     RecommendationInteraction[]
+
+  @@index([userId, type, isActive])
+}
+
+model RecommendationInteraction {
+  id              String               @id @default(uuid()) @db.Uuid
+  userId          String               @db.Uuid
+  recommendationId String              @db.Uuid
+  action          RecommendationAction
+  rating          Int?
+  createdAt       DateTime             @default(now())
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recommendation  Recommendation       @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, recommendationId, action])
+  @@index([recommendationId])
+}
+
+model Category {
+  id          String             @id @default(uuid()) @db.Uuid
+  name        String             @unique
+  slug        String             @unique
+  description String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  products    ProductCategory[]
+}
+
+model Product {
+  id          String           @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String           @unique
+  description String?
+  sku         String?          @unique
+  price       Decimal          @db.Decimal(10, 2)
+  currency    String           @default("USD")
+  status      ProductStatus    @default(ACTIVE)
+  stock       Int              @default(0)
+  featured    Boolean          @default(false)
+  trending    Boolean          @default(false)
+  tags        String[]         @default([])
+  ingredients String[]         @default([])
+  attributes  Json?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  categories  ProductCategory[]
+  images      ProductImage[]
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+  reviews     Review[]
+  wishlistItems WishlistItem[]
+}
+
+model ProductCategory {
+  productId  String  @db.Uuid
+  categoryId String  @db.Uuid
+  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([productId, categoryId])
+}
+
+model ProductImage {
+  id        String   @id @default(uuid()) @db.Uuid
+  productId String   @db.Uuid
+  url       String
+  alt       String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+model Review {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  productId String   @db.Uuid
+  rating    Int
+  title     String?
+  comment   String?
+  isHidden  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, createdAt])
+}
+
+model WishlistItem {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  productId String   @db.Uuid
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+}
+
+model Cart {
+  id        String     @id @default(uuid()) @db.Uuid
+  userId    String     @unique @db.Uuid
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+}
+
+model CartItem {
+  id        String   @id @default(uuid()) @db.Uuid
+  cartId    String   @db.Uuid
+  productId String   @db.Uuid
+  quantity  Int      @default(1)
+  unitPrice Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId])
+}
+
+model Order {
+  id              String      @id @default(uuid()) @db.Uuid
+  userId          String      @db.Uuid
+  status          OrderStatus @default(PENDING)
+  subtotal        Decimal     @db.Decimal(10, 2)
+  shippingAmount  Decimal     @default(0) @db.Decimal(10, 2)
+  taxAmount       Decimal     @default(0) @db.Decimal(10, 2)
+  totalAmount     Decimal     @db.Decimal(10, 2)
+  currency        String      @default("USD")
+  shippingAddress Json?
+  billingAddress  Json?
+  trackingNumber  String?     @unique
+  placedAt        DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items           OrderItem[]
+  payments        Payment[]
+
+  @@index([userId, status])
+}
+
+model OrderItem {
+  id        String   @id @default(uuid()) @db.Uuid
+  orderId   String   @db.Uuid
+  productId String   @db.Uuid
+  quantity  Int
+  unitPrice Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Payment {
+  id                 String        @id @default(uuid()) @db.Uuid
+  orderId            String        @db.Uuid
+  provider           String
+  paymentMethod      String?
+  status             PaymentStatus @default(PENDING)
+  amount             Decimal       @db.Decimal(10, 2)
+  currency           String        @default("USD")
+  transactionReference String?      @unique
+  metadata           Json?
+  paidAt             DateTime?
+  createdAt          DateTime      @default(now())
+  order              Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, status])
+}
+
+model Habit {
+  id          String          @id @default(uuid()) @db.Uuid
+  userId      String          @db.Uuid
+  title       String
+  description String?
+  frequency   HabitFrequency  @default(DAILY)
+  targetCount Int             @default(1)
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  completions HabitCompletion[]
+}
+
+model HabitCompletion {
+  id           String   @id @default(uuid()) @db.Uuid
+  habitId      String   @db.Uuid
+  completedAt  DateTime @default(now())
+  notes        String?
+  habit        Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@index([habitId, completedAt])
+}
+
+model WellnessPlan {
+  id          String          @id @default(uuid()) @db.Uuid
+  title       String
+  slug        String          @unique
+  description String?
+  isActive    Boolean         @default(true)
+  durationDays Int?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  memberships PlanMembership[]
+  progressEntries PlanProgress[]
+}
+
+model PlanMembership {
+  id         String          @id @default(uuid()) @db.Uuid
+  userId     String          @db.Uuid
+  planId     String          @db.Uuid
+  status     MembershipStatus @default(ACTIVE)
+  startedAt  DateTime        @default(now())
+  endedAt    DateTime?
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan       WellnessPlan    @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, planId])
+  @@index([planId, status])
+}
+
+model PlanProgress {
+  id              String        @id @default(uuid()) @db.Uuid
+  userId          String        @db.Uuid
+  planId          String        @db.Uuid
+  progressPercent Int           @default(0)
+  notes           String?
+  recordedAt      DateTime      @default(now())
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan            WellnessPlan  @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([userId, planId, recordedAt])
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @db.Uuid
+  type      NotificationType @default(INFO)
+  title     String
+  body      String
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+}
+
+model UploadFile {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  filename   String
+  url        String
+  mimeType   String?
+  sizeBytes  Int?
+  storageKey String?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model AIInsight {
+  id        String      @id @default(uuid()) @db.Uuid
+  userId    String?     @db.Uuid
+  type      InsightType
+  title     String
+  content   String
+  metadata  Json?
+  createdAt DateTime    @default(now())
+  user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, type])
+}
+
+model AIRiskAnalysis {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  riskLevel RiskLevel
+  summary   String
+  score     Int?
+  details   Json?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, riskLevel])
+}
+
+model AdminReport {
+  id            String     @id @default(uuid()) @db.Uuid
+  generatedById  String?    @db.Uuid
+  type          ReportType
+  title         String
+  fileUrl       String?
+  parameters    Json?
+  createdAt     DateTime   @default(now())
+  generatedBy   User?      @relation("ReportGeneratedBy", fields: [generatedById], references: [id], onDelete: SetNull)
+
+  @@index([generatedById, type])
+}
