@@ -1,125 +1,72 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useApi } from "@/lib/hooks/use-api";
+import { getProductImageUrl } from "@/lib/image-utils";
 
-const ALL_PRODUCTS = [
-  {
-    name: "Weighted Sleep Mask",
-    price: 45.00,
-    category: "Sleep Support",
-    insight: "Matches your sleep patterns",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCMpndUrzpH5g45cFkD_-wi5FnYvgfUKcmN98YIl--4nzX2OGuAuEyyK4Bdkwp4IJB8hxcwdF3RSqGsccy1gQvoWYh5LdDTnjCgAGN2xNKnA4o5pOV6ocgsRKHNg56tJwO1RH9DsXtT-FROZb_t1dxClVEjI78oYKFIWwZZln9EZrq49ejpGqOZB8b5yuLnX67c1LwXB7uVH402yPISN1SFYy2u1NCXbprhhrlKIE1DxlefLlYqqW83w_ZZiZfauXHvyCN11Tz9wNKu",
-    badge: "Personal Match"
-  },
-  {
-    name: "Magnesium Complex",
-    price: 32.00,
-    category: "Nutrition",
-    insight: "Reduces morning cortisol",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCGNfTqDsGVy8SFagQPp_zWKTzU8xgMd-a_apF7RoOc3lZTnvxUvhDZrOokovOV_d5AYI050INkYVQHCvKFqjA84opSF2jlGQZljh9ox66D7dAj0kRh39tgZDqFNLZ76eglJpzRL1e4PbQ9tkEKEIGGNEgDkh9LE7b0rNlN6QmkCSWSVQ0DlU5fQGkPDNjXp5snkJHOUwZPDuAcsWns34je4UyYq4wO5jfOoQYvm0Ie8I3Magh-u7Jd2n5y_Xttt02DwfCYNt42-n98",
-  },
-  {
-    name: "Organic Ceremonial Matcha",
-    price: 58.00,
-    category: "Focus Boost",
-    insight: "Supports focus goals",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDvJSCXyQ4nNo6ScOH3foUYCnVKH39aKLTWK3xZBsugWoYI9igXvHWSnXJtW3brTAYlzUX0GGvlaqnv9KnYBpJGvGAO6cFK1b72cG1Pqa2jwuwYk2oVLlp1ZbnDdX8Jum1H-ZTVYyqDN6GqFacHIgpCWkbx_Ptkz7-7gxR9fbLSNCpKMw4A16QgTsqBgzcojL_2W6ADu_G_Hm2HRjrLDZAmCfO0JLfyqnwlgfNuggRQ5_nUTvq3zgaR5EllwbGKO3mjgRZ3aw_X755a",
-    badge: "Focus Pick"
-  },
-  {
-    name: "Stress-Relief Adaptogen",
-    price: 38.00,
-    category: "Stress Relief",
-    insight: "Balanced nervous system",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCYb7G1l90ksdBU57Na-FaGPAgYzIRMIPn_LbVDXJa6Sd8c_qdIDDCDc7SQIPiGyeLOo5sqvwuvihHMdqt8hOk3yLaQtNDKMSNhR5RT8rfbHwI-aYjI7MNKFoIrYRVkuCQyVPc8DFv9yQ0jdgiAhfvNoIm624V6PHRAG2FB-66rjVuDuVPSSLNJlF2QhXVOWOi0matBKDfQv42AN5ZX7_HWaSUe1_dIs8wFApAD3RYmqZffX3Fj0ftAtmVHzvh5yNYCUhbR9aw5tB6S"
-  },
-  {
-    name: "Linen Weighted Blanket",
-    price: 185.00,
-    category: "Sleep Support",
-    insight: "Deepens REM cycles",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDMi2ZSP69RzDSHuHX-5kjw_oV0FCFGN9EJAERkS8jvu8TRw0kMYufbLdpjl1GkI3B5ZMyltuGBYohiMca6NXF5WQof11kP4waXv1ZO6fjewUfbU_GYouDrfw68nupljwvQppI94lscXA4oySMFEJYfGfao83-vyS6NQoqTqNmYVrXmQ0uNVS7JREYZbnL8-yDP66OwB0lIbW3HAdQkdeYwP_npToblkxzD8TECLLUydS_6GZOHc_HvYX0cPsxt1v_KvSvmHYIxZYNU"
-  },
-  {
-    name: "Ambient Salt Diffuser",
-    price: 65.00,
-    category: "Stress Relief",
-    insight: "Evening air purification",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuChZLIgsggwADCm5J8bVz84jZmHlXtED4ifwmzdo6nxvjzFr1N_8g18taI9ugR3zTa8PXSp0fTXYRB9bt_YzJN6BtD2HNJKUlOtlO8EW8Yh7Sb32_InUm3md3sx87U4aFz7LLoSQc3WVFt2qMRi6gioI6vf4ugd-QoxFih_Tc39XdFq8bz9MhnJV6LDZIXUPV3coHmuDzZb6GvP7rAVULHrWZuhisbCCFaPk3xoy4vk0gpl9XznYRbjICVNszaXry-Yf7Mpx5ereMWO"
-  },
-  {
-    name: "Ashwagandha KSM-66",
-    price: 42.00,
-    category: "Stress Relief",
-    insight: "Tailored to your stress score",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCYb7G1l90ksdBU57Na-FaGPAgYzIRMIPn_LbVDXJa6Sd8c_qdIDDCDc7SQIPiGyeLOo5sqvwuvihHMdqt8hOk3yLaQtNDKMSNhR5RT8rfbHwI-aYjI7MNKFoIrYRVkuCQyVPc8DFv9yQ0jdgiAhfvNoIm624V6PHRAG2FB-66rjVuDuVPSSLNJlF2QhXVOWOi0matBKDfQv42AN5ZX7_HWaSUe1_dIs8wFApAD3RYmqZffX3Fj0ftAtmVHzvh5yNYCUhbR9aw5tB6S"
-  },
-  {
-    name: "Melatonin Micro-dose",
-    price: 28.00,
-    category: "Sleep Support",
-    insight: "Fits your sleep window",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCMpndUrzpH5g45cFkD_-wi5FnYvgfUKcmN98YIl--4nzX2OGuAuEyyK4Bdkwp4IJB8hxcwdF3RSqGsccy1gQvoWYh5LdDTnjCgAGN2xNKnA4o5pOV6ocgsRKHNg56tJwO1RH9DsXtT-FROZb_t1dxClVEjI78oYKFIWwZZln9EZrq49ejpGqOZB8b5yuLnX67c1LwXB7uVH402yPISN1SFYy2u1NCXbprhhrlKIE1DxlefLlYqqW83w_ZZiZfauXHvyCN11Tz9wNKu"
-  },
-  {
-    name: "Blue-Light Glasses",
-    price: 75.00,
-    category: "Sleep Support",
-    insight: "Matches your screen hours",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDvJSCXyQ4nNo6ScOH3foUYCnVKH39aKLTWK3xZBsugWoYI9igXvHWSnXJtW3brTAYlzUX0GGvlaqnv9KnYBpJGvGAO6cFK1b72cG1Pqa2jwuwYk2oVLlp1ZbnDdX8Jum1H-ZTVYyqDN6GqFacHIgpCWkbx_Ptkz7-7gxR9fbLSNCpKMw4A16QgTsqBgzcojL_2W6ADu_G_Hm2HRjrLDZAmCfO0JLfyqnwlgfNuggRQ5_nUTvq3zgaR5EllwbGKO3mjgRZ3aw_X755a"
-  },
-  {
-    name: "Lion's Mane Extract",
-    price: 55.00,
-    category: "Focus Boost",
-    insight: "Boosts your focus profile",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCGNfTqDsGVy8SFagQPp_zWKTzU8xgMd-a_apF7RoOc3lZTnvxUvhDZrOokovOV_d5AYI050INkYVQHCvKFqjA84opSF2jlGQZljh9ox66D7dAj0kRh39tgZDqFNLZ76eglJpzRL1e4PbQ9tkEKEIGGNEgDkh9LE7b0rNlN6QmkCSWSVQ0DlU5fQGkPDNjXp5snkJHOUwZPDuAcsWns34je4UyYq4wO5jfOoQYvm0Ie8I3Magh-u7Jd2n5y_Xttt02DwfCYNt42-n98"
-  },
-  {
-    name: "Oat Milk Sleep Elixir",
-    price: 34.00,
-    category: "Sleep Support",
-    insight: "Evening ritual match",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDMi2ZSP69RzDSHuHX-5kjw_oV0FCFGN9EJAERkS8jvu8TRw0kMYufbLdpjl1GkI3B5ZMyltuGBYohiMca6NXF5WQof11kP4waXv1ZO6fjewUfbU_GYouDrfw68nupljwvQppI94lscXA4oySMFEJYfGfao83-vyS6NQoqTqNmYVrXmQ0uNVS7JREYZbnL8-yDP66OwB0lIbW3HAdQkdeYwP_npToblkxzD8TECLLUydS_6GZOHc_HvYX0cPsxt1v_KvSvmHYIxZYNU"
-  },
-  {
-    name: "Hemp CBD Softgels",
-    price: 68.00,
-    category: "Stress Relief",
-    insight: "Similar to Adaptogen blend",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCGNfTqDsGVy8SFagQPp_zWKTzU8xgMd-a_apF7RoOc3lZTnvxUvhDZrOokovOV_d5AYI050INkYVQHCvKFqjA84opSF2jlGQZljh9ox66D7dAj0kRh39tgZDqFNLZ76eglJpzRL1e4PbQ9tkEKEIGGNEgDkh9LE7b0rNlN6QmkCSWSVQ0DlU5fQGkPDNjXp5snkJHOUwZPDuAcsWns34je4UyYq4wO5jfOoQYvm0Ie8I3Magh-u7Jd2n5y_Xttt02DwfCYNt42-n98"
-  },
-  {
-    name: "Collagen Peptides+",
-    price: 52.00,
-    category: "Nutrition",
-    insight: "Trending this week",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCYb7G1l90ksdBU57Na-FaGPAgYzIRMIPn_LbVDXJa6Sd8c_qdIDDCDc7SQIPiGyeLOo5sqvwuvihHMdqt8hOk3yLaQtNDKMSNhR5RT8rfbHwI-aYjI7MNKFoIrYRVkuCQyVPc8DFv9yQ0jdgiAhfvNoIm624V6PHRAG2FB-66rjVuDuVPSSLNJlF2QhXVOWOi0matBKDfQv42AN5ZX7_HWaSUe1_dIs8wFApAD3RYmqZffX3Fj0ftAtmVHzvh5yNYCUhbR9aw5tB6S"
-  },
-  {
-    name: "Cold Exposure Kit",
-    price: 120.00,
-    category: "Stress Relief",
-    insight: "Editor's pick",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDvJSCXyQ4nNo6ScOH3foUYCnVKH39aKLTWK3xZBsugWoYI9igXvHWSnXJtW3brTAYlzUX0GGvlaqnv9KnYBpJGvGAO6cFK1b72cG1Pqa2jwuwYk2oVLlp1ZbnDdX8Jum1H-ZTVYyqDN6GqFacHIgpCWkbx_Ptkz7-7gxR9fbLSNCpKMw4A16QgTsqBgzcojL_2W6ADu_G_Hm2HRjrLDZAmCfO0JLfyqnwlgfNuggRQ5_nUTvq3zgaR5EllwbGKO3mjgRZ3aw_X755a"
-  }
-];
-
-const CATEGORIES = ["All", "Sleep Support", "Stress Relief", "Focus Boost", "Nutrition"];
+const CATEGORIES = ["All", "Supplements", "Vitamins", "Protein", "Sleep & Recovery", "Immunity", "Energy & Focus"];
 
 export default function AllProducts() {
+  const { getProducts, getRecommendations, addToCart, sessionStatus } = useApi();
+  const [products, setProducts] = useState<any[]>([]);
+  const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
 
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      try {
+        const data = await getProducts('take=50');
+        setProducts(data.items || []);
+        
+        if (sessionStatus === 'authenticated') {
+          const recs = await getRecommendations('for-you', 'limit=4');
+          setRecommendations(recs.items || []);
+        }
+      } catch (err) {
+        console.error("Failed to load products:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, [getProducts, getRecommendations, sessionStatus]);
+
   const filteredProducts = useMemo(() => {
-    return ALL_PRODUCTS.filter((product) => {
+    return products.filter((product) => {
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            product.insight.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = activeCategory === "All" || product.category === activeCategory;
+                            product.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const productCats = (product.categories?.map((c: any) => c.category?.name || c.name) || [])
+        .concat(product.category_ids && Array.isArray(product.category_ids) ? product.category_ids : []);
+      
+      const matchesCategory = activeCategory === "All" || 
+                              productCats.some((name: string) => name.toLowerCase().includes(activeCategory.toLowerCase()));
+      
       return matchesSearch && matchesCategory;
     });
-  }, [searchQuery, activeCategory]);
+  }, [searchQuery, activeCategory, products]);
+
+  const handleAddToCart = async (productId: string) => {
+    try {
+      await addToCart(productId, 1);
+      alert("Added to cart!");
+    } catch {
+      alert("Failed to add to cart. Are you logged in?");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+        <p className="text-stone-500 font-medium">Loading catalog...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
@@ -135,6 +82,35 @@ export default function AllProducts() {
           Browse our complete catalog of wellness essentials, supplements, and gear to support your mindful journey.
         </p>
       </div>
+
+      {/* Recommended For You - Small Row */}
+      {recommendations.length > 0 && activeCategory === "All" && !searchQuery && (
+        <div className="mb-16 bg-primary/5 rounded-[2.5rem] p-8 border border-primary/10">
+          <div className="flex items-center gap-2 mb-6">
+            <span className="material-symbols-outlined text-primary text-xl">stars</span>
+            <h2 className="font-headline text-xl font-bold text-on-surface">Recommended for You</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {recommendations.map((item, i) => (
+              <div key={item.id} className="bg-white rounded-2xl p-4 shadow-sm border border-stone-100 flex gap-4 items-center group">
+                <div className="w-20 h-20 rounded-xl overflow-hidden bg-stone-50 shrink-0">
+                  <img 
+                    src={getProductImageUrl(item, i)} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                    alt={item.name}
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <Link href={`/main/product-details/${item.slug}`} className="font-headline font-bold text-on-surface text-sm truncate block hover:text-primary transition-colors">
+                    {item.name}
+                  </Link>
+                  <p className="text-primary font-bold text-xs mt-1">${item.price}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Search and Filters */}
       <div className="flex flex-col lg:flex-row gap-6 mb-12 items-start lg:items-center justify-between">
@@ -178,49 +154,67 @@ export default function AllProducts() {
       </div>
 
       {/* Product Grid */}
-      {filteredProducts.length > 0 ? (
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-12">
-          {filteredProducts.map((item, i) => (
-            <Link key={i} href="/main/product-details" className="group block">
-              <div className="aspect-[4/5] bg-surface-container-low rounded-3xl overflow-hidden transition-all group-hover:bg-surface-container-highest relative">
-                <img alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src={item.image}/>
-                {item.badge && (
-                  <div className="absolute top-4 left-4">
-                    <span className="bg-primary/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest">{item.badge}</span>
-                  </div>
-                )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        {filteredProducts.map((product, i) => (
+          <div key={product.id} className="group flex flex-col bg-white rounded-[2.5rem] p-5 border border-stone-100 hover:border-primary/20 transition-all hover:shadow-2xl hover:shadow-primary/5">
+            <div className="relative aspect-square rounded-[2rem] overflow-hidden bg-stone-50 mb-6">
+              <img 
+                src={getProductImageUrl(product, i)} 
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                alt={product.name}
+              />
+              {/* Category Tags */}
+              <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+                {product.categories?.slice(0, 1).map((cat: any) => (
+                  <span key={cat.id} className="px-3 py-1 bg-white/90 backdrop-blur-sm text-primary font-bold text-[10px] uppercase tracking-wider rounded-full shadow-sm">
+                    {cat.name}
+                  </span>
+                ))}
               </div>
-              <div className="mt-5 space-y-2">
-                <div className="flex justify-between items-start">
-                  <h3 className="font-headline text-lg font-bold text-on-surface leading-tight pr-4">{item.name}</h3>
-                  <span className="text-primary font-bold font-label whitespace-nowrap">${item.price.toFixed(2)}</span>
+              <button 
+                onClick={() => handleAddToCart(product.id)}
+                className="absolute bottom-4 right-4 w-12 h-12 bg-primary text-white rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-primary-hover shadow-lg shadow-primary/30"
+              >
+                <span className="material-symbols-outlined text-xl">add_shopping_cart</span>
+              </button>
+            </div>
+            
+            <div className="flex-1 flex flex-col px-1">
+              <Link href={`/main/product-details/${product.slug}`} className="block">
+                <h3 className="font-headline text-xl font-bold text-on-surface group-hover:text-primary transition-colors line-clamp-1">
+                  {product.name}
+                </h3>
+              </Link>
+              <p className="text-stone-400 text-sm mt-1 line-clamp-2">
+                {product.description || "High-quality wellness product to support your healthy lifestyle."}
+              </p>
+              
+              <div className="mt-auto pt-6 flex items-center justify-between border-t border-stone-50">
+                <div className="flex flex-col">
+                  <span className="text-primary font-black text-2xl">${product.price}</span>
+                  <span className="text-[10px] text-stone-400 font-bold uppercase tracking-widest mt-0.5">Free Shipping</span>
                 </div>
-                <p className="text-stone-500 text-xs font-bold flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[14px]">auto_awesome</span>
-                  {item.insight}
-                </p>
-                <button className="w-full mt-4 bg-white border border-outline-variant/15 py-3 rounded-xl font-label text-sm tracking-wide text-stone-500 hover:bg-primary-container hover:text-white hover:border-transparent transition-all flex items-center justify-center gap-2 font-bold shadow-sm active:scale-95">
-                  <span className="material-symbols-outlined text-lg">add_shopping_cart</span>
-                  Add to Bag
-                </button>
+                <div className="flex items-center gap-1 bg-stone-50 px-3 py-1.5 rounded-xl border border-stone-100">
+                  <span className="material-symbols-outlined text-amber-400 text-sm fill-1">star</span>
+                  <span className="text-stone-700 font-bold text-xs">4.9</span>
+                </div>
               </div>
-            </Link>
-          ))}
-        </section>
-      ) : (
-        <div className="w-full bg-surface-container-low rounded-2xl p-12 text-center text-stone-500 mt-8 border border-dashed border-outline-variant/30 flex flex-col items-center justify-center">
-           <span className="material-symbols-outlined text-5xl mb-4 text-stone-300">search_off</span>
-           <p className="font-headline text-xl font-bold text-on-surface mb-2">No products found</p>
-           <p className="max-w-md mx-auto">We couldn't find any products matching your search criteria. Try adjusting your filters or search terms.</p>
-           <button 
-             onClick={() => {
-               setSearchQuery("");
-               setActiveCategory("All");
-             }}
-             className="mt-6 px-6 py-2.5 bg-primary/10 text-primary rounded-xl font-bold font-label tracking-widest uppercase hover:bg-primary/20 transition-colors"
-           >
-             Clear Filters
-           </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {filteredProducts.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-20 bg-stone-50 rounded-[3rem] border-2 border-dashed border-stone-200">
+          <span className="material-symbols-outlined text-stone-300 text-6xl mb-4">search_off</span>
+          <h3 className="font-headline text-2xl font-bold text-on-surface">No products found</h3>
+          <p className="text-stone-500 mt-2">Try adjusting your filters or search keywords.</p>
+          <button 
+            onClick={() => {setSearchQuery(""); setActiveCategory("All");}}
+            className="mt-6 text-primary font-bold hover:underline"
+          >
+            Clear all filters
+          </button>
         </div>
       )}
     </div>

@@ -1,148 +1,164 @@
-export default function Cart() {
-  return (
-    <div className="pt-10 pb-32 max-w-5xl mx-auto">
-      <div className="mb-12">
-        <h2 className="font-headline text-4xl font-extrabold tracking-tight text-on-surface mb-2">Your Cart</h2>
-        <p className="text-stone-500 italic">Curating your path to restorative rest.</p>
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useApi } from '@/lib/hooks/use-api';
+import { getProductImageUrl } from '@/lib/image-utils';
+import { Trash2, ShoppingBag, Sparkles, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
+
+export default function CartPage() {
+  const { getCart, updateCartItem, removeFromCart, createOrder } = useApi();
+  const [cart, setCart] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadCart();
+  }, []);
+
+  async function loadCart() {
+    try {
+      setLoading(true);
+      const data = await getCart();
+      setCart(data);
+    } catch (err) {
+      console.error("Cart error:", err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleUpdateQuantity = async (itemId: string, newQty: number) => {
+    if (newQty < 1) return;
+    try {
+      await updateCartItem(itemId, newQty);
+      await loadCart();
+    } catch (err) {
+      console.error("Failed to update quantity:", err);
+      alert("Failed to update quantity");
+    }
+  };
+
+  const handleRemove = async (itemId: string) => {
+    try {
+      await removeFromCart(itemId);
+      await loadCart();
+    } catch (err) {
+      console.error("Failed to remove item:", err);
+      alert("Failed to remove item");
+    }
+  };
+
+  const handleCheckout = async () => {
+    try {
+      await createOrder();
+      alert("Order placed successfully!");
+      globalThis.location.href = '/main/dashboard';
+    } catch (err) {
+      console.error("Failed to create order:", err);
+      alert("Failed to create order. Please try again.");
+    }
+  };
+
+  if (loading) return <div className="py-20 text-center">Loading your wellness cart...</div>;
+
+  if (!cart?.items?.length) {
+    return (
+      <div className="max-w-3xl mx-auto py-20 px-6 text-center">
+        <div className="inline-flex items-center justify-center w-24 h-24 bg-slate-50 rounded-full mb-8 text-slate-300">
+           <ShoppingBag size={48} />
+        </div>
+        <h2 className="text-3xl font-bold text-slate-900 mb-4">Your cart is empty</h2>
+        <p className="text-slate-500 mb-10">Start your journey to better health by exploring our curated collections.</p>
+        <Link href="/main/store" className="inline-flex items-center gap-2 bg-indigo-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-indigo-700 transition-all">
+          Go to Marketplace <ArrowRight size={20} />
+        </Link>
       </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto px-6 py-12">
+      <h1 className="text-4xl font-black text-slate-900 mb-12">Shopping Cart</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        {/* Items List */}
-        <div className="lg:col-span-7 space-y-16">
-          {/* Product 1 */}
-          <div className="group flex flex-col md:flex-row gap-8 items-start">
-            <div className="w-full md:w-48 aspect-[4/5] bg-surface-container-low overflow-hidden rounded-3xl">
-              <img alt="Linen Weighted Blanket" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCbOyGw6Gvq_kfAstOTURz1_Dubt1kvwmW6CMmIvNhnme9mLciLsgbhQ-lmHVXJPMCN1ypBGiWZKh-c0Ua8lu3l96-c4ugJLrZvN5ps24DP-19G676g7-4DyaMgEJlEMPF2TtfREzG08ALN9sbJVmwZHUmTMeaPGGhJQYwQNBkyLyagpPoUku_qChSHD6m8Axggb2xBI9C3hp50CtQ86gFwTc_XjWIJLvBu1gtRLnQdhPjy_Cieln1bZCQG3fw-1XrhJstA3ULCeRP"/>
-            </div>
-            <div className="flex-1">
-              <div className="flex justify-between items-start mb-4">
+        <div className="lg:col-span-8 space-y-8">
+          {cart.items.map((item: any) => (
+            <div key={item.id} className="flex flex-col md:flex-row gap-6 p-6 bg-white border border-slate-100 rounded-4xl hover:shadow-lg transition-shadow">
+              <div className="w-full md:w-40 aspect-square rounded-2xl overflow-hidden bg-slate-50 shrink-0">
+                <img 
+                  src={getProductImageUrl(item.product)} 
+                  alt={item.product?.name} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className="font-headline text-2xl font-bold tracking-tight mb-1">Linen Weighted Blanket</h3>
-                  <p className="text-sm font-label uppercase tracking-widest text-stone-500">Sleep Hygiene</p>
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-xl font-bold text-slate-900">{item.product?.name}</h3>
+                    <span className="text-xl font-black text-indigo-600">${item.product?.price}</span>
+                  </div>
+                  <p className="text-slate-500 text-sm mb-4 line-clamp-2">{item.product?.description}</p>
                 </div>
-                <span className="font-label text-primary text-lg font-bold">$189.00</span>
-              </div>
-              <p className="text-stone-600 mb-6 pr-8">Breathable European linen paired with micro-glass beads for deep pressure stimulation without overheating.</p>
-              
-              <div className="flex items-center gap-6">
-                <div className="flex items-center bg-surface-container-highest rounded-full px-4 py-1">
-                  <button className="text-stone-500 hover:text-primary transition-colors">
-                    <span className="material-symbols-outlined text-sm">remove</span>
-                  </button>
-                  <span className="mx-4 text-sm font-bold">1</span>
-                  <button className="text-stone-500 hover:text-primary transition-colors">
-                    <span className="material-symbols-outlined text-sm">add</span>
-                  </button>
-                </div>
-                <button className="text-stone-400 hover:text-red-500 transition-colors flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold">
-                  <span className="material-symbols-outlined text-base">delete</span> Remove
-                </button>
-              </div>
-            </div>
-          </div>
 
-          {/* Product 2 */}
-          <div className="group flex flex-col md:flex-row gap-8 items-start">
-            <div className="w-full md:w-48 aspect-[4/5] bg-surface-container-low overflow-hidden rounded-3xl">
-              <img alt="Magnesium Complex" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-kJvlF3DWT2EIwB7X6w0MTk9P-Z6OJJ1eDhIdmfsjWXhRXhRS1Hi1U_2g-vha9S9hgDM7VHkG_QoRCLgaQ_Cw65h1cm4q1vFr5hLp1LlH8OknYRi8YjvgWLAJR5vdFOCMPvQpxnJm9AwmwBHaQGztYDd1R07qLGYijnpjqxLb9-3vOlECUv2V9T4brCHdx3CCcR02QpMm-HZ-TSwWVyauaYURVIS4nTNmWAZhIZGN2lIyjkVRwQxNPEMrVWDmj7pNPiFbR-CrxlMb"/>
-            </div>
-            <div className="flex-1">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="font-headline text-2xl font-bold tracking-tight mb-1">Magnesium Complex</h3>
-                  <p className="text-sm font-label uppercase tracking-widest text-stone-500">Recovery</p>
-                </div>
-                <span className="font-label text-primary text-lg font-bold">$42.00</span>
-              </div>
-              <p className="text-stone-600 mb-6 pr-8">Triple-source magnesium chelate designed for optimal muscular relaxation and cognitive calm.</p>
-
-              <div className="flex items-center gap-6">
-                <div className="flex items-center bg-surface-container-highest rounded-full px-4 py-1">
-                  <button className="text-stone-500 hover:text-primary transition-colors">
-                    <span className="material-symbols-outlined text-sm">remove</span>
-                  </button>
-                  <span className="mx-4 text-sm font-bold">2</span>
-                  <button className="text-stone-500 hover:text-primary transition-colors">
-                    <span className="material-symbols-outlined text-sm">add</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center border border-slate-100 rounded-xl p-1 bg-slate-50">
+                    <button onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)} className="w-8 h-8 flex items-center justify-center hover:bg-white rounded-lg">-</button>
+                    <span className="w-10 text-center font-bold">{item.quantity}</span>
+                    <button onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)} className="w-8 h-8 flex items-center justify-center hover:bg-white rounded-lg">+</button>
+                  </div>
+                  <button onClick={() => handleRemove(item.id)} className="text-rose-500 hover:bg-rose-50 p-2 rounded-xl transition-colors flex items-center gap-2 text-sm font-bold">
+                    <Trash2 size={18} /> Remove
                   </button>
                 </div>
-                <button className="text-stone-400 hover:text-red-500 transition-colors flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold">
-                  <span className="material-symbols-outlined text-base">delete</span> Remove
-                </button>
               </div>
             </div>
-          </div>
+          ))}
         </div>
 
-        {/* Summary Column */}
-        <div className="lg:col-span-5">
+        <div className="lg:col-span-4">
           <div className="sticky top-28 space-y-6">
-            
-            {/* AI Benefits Section */}
-            <div className="bg-primary/5 p-8 rounded-3xl wellness-glow relative overflow-hidden border border-primary/10">
-              <div className="absolute top-0 right-0 p-4">
-                <span className="material-symbols-outlined text-primary text-5xl opacity-10" style={{fontVariationSettings: "'FILL' 1"}}>auto_awesome</span>
-              </div>
-              <h4 className="font-headline text-lg font-bold mb-4 flex items-center gap-2 text-primary">
-                AI-Powered Benefits
-              </h4>
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <div className="w-1 bg-primary rounded-full"></div>
-                  <p className="text-sm text-stone-600 leading-relaxed font-medium">
-                    <strong className="text-on-surface block mb-1">Synergy:</strong> Combined use of Magnesium and the Weighted Blanket is predicted to reduce your cortisol levels by 18% during the first REM cycle.
-                  </p>
-                </div>
-                <div className="flex gap-4">
-                  <div className="w-1 bg-primary rounded-full"></div>
-                  <p className="text-sm text-stone-600 leading-relaxed font-medium">
-                    <strong className="text-on-surface block mb-1">Insight:</strong> Based on your sleep tracking, this combination addresses the "tossing and turning" phase noted in your last 3 nights.
-                  </p>
-                </div>
-              </div>
+            <div className="bg-white border border-slate-100 p-8 rounded-4xl shadow-xl shadow-slate-200/50">
+               <h2 className="text-2xl font-bold mb-8 text-slate-900">Order Summary</h2>
+               <div className="space-y-4 mb-8">
+                  <div className="flex justify-between text-slate-500 font-medium">
+                    <span>Subtotal</span>
+                    <span>${cart.total_price}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-500 font-medium">
+                    <span>Shipping</span>
+                    <span className="text-emerald-600 font-bold">FREE</span>
+                  </div>
+                  <div className="h-px bg-slate-100 my-4"></div>
+                  <div className="flex justify-between text-2xl font-black text-slate-900">
+                    <span>Total</span>
+                    <span>${cart.total_price}</span>
+                  </div>
+               </div>
+
+               <button 
+                onClick={handleCheckout}
+                className="w-full bg-indigo-600 text-white py-5 rounded-2xl font-bold text-lg hover:bg-indigo-700 transition-all flex items-center justify-center gap-3 shadow-lg shadow-indigo-100"
+               >
+                 Place Order
+                 <ArrowRight size={20} />
+               </button>
             </div>
 
-            {/* Checkout Summary */}
-            <div className="bg-white p-8 rounded-3xl wellness-glow">
-              <div className="space-y-4 mb-8">
-                <div className="flex justify-between text-sm font-medium">
-                  <span className="text-stone-500">Subtotal</span>
-                  <span>$273.00</span>
-                </div>
-                <div className="flex justify-between text-sm font-medium">
-                  <span className="text-stone-500">Sanctuary Shipping</span>
-                  <span className="text-primary font-bold">Complimentary</span>
-                </div>
-                <div className="h-px bg-surface-container my-4"></div>
-                <div className="flex justify-between items-end">
-                  <span className="font-headline font-bold text-lg">Total</span>
-                  <span className="font-headline font-extrabold text-3xl text-primary">$273.00</span>
-                </div>
-              </div>
-              <button className="w-full bg-gradient-to-br from-primary to-primary-container text-white py-4 rounded-xl font-label font-bold text-sm uppercase tracking-widest active:scale-95 transition-all duration-200">
-                Secure Checkout
-              </button>
-              <div className="mt-6 flex items-center justify-center gap-4 text-[10px] text-stone-400 uppercase tracking-[0.2em] font-bold">
-                <span className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-xs">lock</span> Encrypted
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-xs">verified_user</span> Insured
-                </span>
-              </div>
+            <div className="bg-indigo-900 text-white p-8 rounded-4xl relative overflow-hidden">
+               <div className="relative z-10">
+                 <div className="flex items-center gap-2 mb-4">
+                    <Sparkles className="text-amber-400" size={20} />
+                    <span className="text-xs font-black uppercase tracking-widest text-indigo-200">AI Wellness Scan</span>
+                 </div>
+                 <h4 className="text-xl font-bold mb-4">Optimized Routine</h4>
+                 <p className="text-indigo-100/80 leading-relaxed text-sm mb-6">
+                   Based on your selection, these items provide a synergistic effect on your recovery cycles.
+                 </p>
+               </div>
             </div>
-
-            {/* Assistance Note */}
-            <div className="text-center px-4 pt-4">
-              <p className="text-xs text-stone-500 leading-relaxed font-medium">
-                Need guidance on your selection? <br/>
-                <a className="text-primary underline underline-offset-4 decoration-primary/20 hover:decoration-primary transition-all font-bold" href="#">Chat with your Wellness Coach</a>
-              </p>
-            </div>
-
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
