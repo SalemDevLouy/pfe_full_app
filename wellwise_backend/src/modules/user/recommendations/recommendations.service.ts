@@ -51,4 +51,12 @@ export class RecommendationsService {
     const userParam = userId ? `&user_id=${userId}` : '';
     return this.call(`/recommendations/new-arrivals?limit=${limit}${userParam}`);
   }
+
+  hybrid(userId: string, limit = 10) {
+    return this.call(`/recommendations/hybrid?user_id=${userId}&limit=${limit}`);
+  }
+
+  collaborative(userId: string, limit = 10) {
+    return this.call(`/recommendations/collaborative?user_id=${userId}&limit=${limit}`);
+  }
 }

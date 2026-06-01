@@ -9,6 +9,7 @@ import { ReviewsModule } from './reviews/reviews.module';
 import { ProfileModule } from './profile/profile.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { WellnessModule } from './wellness/wellness.module';
+import { WishlistModule } from './wishlist/wishlist.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { WellnessModule } from './wellness/wellness.module';
     ReviewsModule,
     UploadsModule,
     WellnessModule,
+    WishlistModule,
   ],
   controllers: [],
   providers: [],

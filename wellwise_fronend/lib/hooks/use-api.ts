@@ -91,6 +91,76 @@ export function useApi() {
     [fetchWithAuth],
   );
 
+  const cancelOrder = useCallback(
+    (orderId: string, reason?: string) =>
+      fetchWithAuth(`/user/orders/${orderId}/cancel`, {
+        method: 'PATCH',
+        body: JSON.stringify({ reason }),
+      }),
+    [fetchWithAuth],
+  );
+
+  // Profile
+  const getProfile = useCallback(
+    () => fetchWithAuth('/user/profile'),
+    [fetchWithAuth],
+  );
+
+  const updateProfile = useCallback(
+    (data: { name?: string; age?: number; gender?: string }) =>
+      fetchWithAuth('/user/profile', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    [fetchWithAuth],
+  );
+
+  const changePassword = useCallback(
+    (currentPassword: string, newPassword: string) =>
+      fetchWithAuth('/user/profile/password', {
+        method: 'PUT',
+        body: JSON.stringify({ currentPassword, newPassword }),
+      }),
+    [fetchWithAuth],
+  );
+
+  // Reviews
+  const createReview = useCallback(
+    (productId: string, rating: number, title?: string, comment?: string) =>
+      fetchWithAuth('/user/reviews', {
+        method: 'POST',
+        body: JSON.stringify({ productId, rating, title, comment }),
+      }),
+    [fetchWithAuth],
+  );
+
+  const deleteReview = useCallback(
+    (reviewId: string) =>
+      fetchWithAuth(`/user/reviews/${reviewId}`, { method: 'DELETE' }),
+    [fetchWithAuth],
+  );
+
+  // Wishlist
+  const checkWishlist = useCallback(
+    (productId: string) => fetchWithAuth(`/user/wishlist/check/${productId}`),
+    [fetchWithAuth],
+  );
+
+  const addToWishlist = useCallback(
+    (productId: string) =>
+      fetchWithAuth('/user/wishlist', {
+        method: 'POST',
+        body: JSON.stringify({ productId }),
+      }),
+    [fetchWithAuth],
+  );
+
+  const removeFromWishlist = useCallback(
+    (productId: string) =>
+      fetchWithAuth(`/user/wishlist/${productId}`, { method: 'DELETE' }),
+    [fetchWithAuth],
+  );
+
   return {
     sessionStatus: status,
     getProducts,
@@ -102,5 +172,14 @@ export function useApi() {
     removeFromCart,
     getOrders,
     createOrder,
+    cancelOrder,
+    getProfile,
+    updateProfile,
+    changePassword,
+    createReview,
+    deleteReview,
+    checkWishlist,
+    addToWishlist,
+    removeFromWishlist,
   };
 }

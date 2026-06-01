@@ -99,6 +99,26 @@ export class RecommendationsController {
     );
   }
 
+  /** GET /user/recommendations/collaborative */
+  @Get('collaborative')
+  collaborative(
+    @CurrentUser() authUser: AuthUser,
+    @Query('limit') limit?: string,
+  ) {
+    const userId = this.resolveUserId(authUser);
+    return this.recommendationsService.collaborative(userId, limit ? parseInt(limit, 10) : 10);
+  }
+
+  /** GET /user/recommendations/hybrid */
+  @Get('hybrid')
+  hybrid(
+    @CurrentUser() authUser: AuthUser,
+    @Query('limit') limit?: string,
+  ) {
+    const userId = this.resolveUserId(authUser);
+    return this.recommendationsService.hybrid(userId, limit ? parseInt(limit, 10) : 10);
+  }
+
   /** GET /user/recommendations/cross-sell/:productId */
   @Get('cross-sell/:productId')
   crossSell(

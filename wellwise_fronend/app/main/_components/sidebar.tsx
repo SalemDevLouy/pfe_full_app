@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { markSignedOut } from "@/app/lib/session-flow";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
 
 const navItems = [
   { href: "/main/dashboard", label: "Dashboard", icon: "dashboard" },
@@ -13,6 +13,7 @@ const navItems = [
   { href: "/main/insights", label: "Recommendations", icon: "auto_awesome" },
   { href: "/main/assessment", label: "Assessment", icon: "check_circle" },
   { href: "/main/store", label: "Store", icon: "local_mall" },
+  { href: "/main/orders", label: "Orders", icon: "shopping_bag" },
   { href: "/main/profile", label: "Profile", icon: "person" },
 ];
 
@@ -20,15 +21,35 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join("");
+}
+
+function Avatar({ initials, size = "md" }: { initials: string; size?: "sm" | "md" }) {
+  const cls = size === "sm" ? "w-9 h-9 text-sm" : "w-12 h-12 text-base";
+  return (
+    <div className={`${cls} rounded-2xl overflow-hidden bg-green-100 flex items-center justify-center shrink-0`}>
+      <span className="font-headline font-bold text-green-800">{initials}</span>
+    </div>
+  );
+}
+
 export default function MainSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
 
-  // Close sidebar on path change
-  useEffect(() => {
-    setIsOpen(false);
-  }, [pathname]);
+  const userName = session?.user?.name ?? "Guest";
+  const userEmail = session?.user?.email ?? "";
+  const initials = getInitials(userName);
+
+  const close = () => setIsOpen(false);
 
   const handleLogout = async () => {
     markSignedOut();
@@ -42,24 +63,22 @@ export default function MainSidebar() {
       {/* Mobile Top Bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between bg-white/90 backdrop-blur-xl border-b border-slate-200/50 px-6 py-4 shadow-sm">
         <div className="flex items-center gap-4">
-          <button 
+          <button
             onClick={() => setIsOpen(true)}
             className="p-2 -ml-2 rounded-xl text-stone-700 hover:bg-stone-100 transition-colors"
           >
             <span className="material-symbols-outlined text-2xl">menu</span>
           </button>
-          <span className="text-xl font-bold tracking-tighter text-green-900 font-headline">The Mindful Editorial</span>
+          <span className="text-xl font-bold tracking-tighter text-green-900 font-headline">sihatek market</span>
         </div>
-        <div className="w-9 h-9 rounded-full overflow-hidden shadow-sm">
-          <img alt="Alex Rivers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfMpCE7h4PMOS8F-mrsokFr3_mUjevyAHerQVT_JtU8iV3PXtcj-isfRGAPD2SUQaFYl_miEHa2VLdeZVhrI-gLscGJ7F92Tt_Jy4FthZ4yWIwrmd0N8VKVKIq8yzXIXE3w5jEGJMroxN6gkIeTq9xiE2xv1YsEHMG-KqfVaQkZtVvOzLh_aZk2NfoRrPjjqP9p9y9t0bOFiS_Vn7YQB5ZHPlfCgHCQiYxA4ygkzZGMsQTNP7QAkrqr3XCt8S02ZSX9FbEq0ztbQoD"/>
-        </div>
+        <Avatar initials={initials} size="sm" />
       </div>
 
       {/* Overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-slate-900/20 backdrop-blur-sm md:hidden"
-          onClick={() => setIsOpen(false)}
+          onClick={close}
         />
       )}
 
@@ -67,34 +86,43 @@ export default function MainSidebar() {
       <aside className={`fixed top-0 left-0 z-50 w-72 h-screen overflow-y-auto flex-col border-r border-slate-200/70 bg-slate-50/95 backdrop-blur-xl shadow-[8px_0_24px_rgba(26,28,28,0.04)] transition-transform duration-300 ease-in-out md:flex md:translate-x-0 ${
         isOpen ? "translate-x-0 flex" : "-translate-x-full"
       }`}>
-        <div className="px-8 py-10 flex flex-col items-start gap-2">
-          <div className="flex w-full items-center justify-between">
-            <span className="text-2xl font-bold tracking-tighter text-green-900 font-headline">The Mindful Editorial</span>
-            <button 
-              className="md:hidden p-2 -mr-2 text-stone-500 hover:bg-stone-200 rounded-full transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              <span className="material-symbols-outlined">close</span>
-            </button>
-          </div>
-          <div className="flex items-center gap-3 mt-8">
-            <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-sm">
-              <img alt="Alex Rivers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfMpCE7h4PMOS8F-mrsokFr3_mUjevyAHerQVT_JtU8iV3PXtcj-isfRGAPD2SUQaFYl_miEHa2VLdeZVhrI-gLscGJ7F92Tt_Jy4FthZ4yWIwrmd0N8VKVKIq8yzXIXE3w5jEGJMroxN6gkIeTq9xiE2xv1YsEHMG-KqfVaQkZtVvOzLh_aZk2NfoRrPjjqP9p9y9t0bOFiS_Vn7YQB5ZHPlfCgHCQiYxA4ygkzZGMsQTNP7QAkrqr3XCt8S02ZSX9FbEq0ztbQoD"/>
-            </div>
-            <div>
-              <h3 className="font-headline font-bold text-on-surface leading-tight">Alex Rivers</h3>
-              <p className="text-xs text-stone-500 font-medium">Day 12 • Mindful Journey</p>
-            </div>
-          </div>
+
+        {/* Logo */}
+        <div className="px-8 py-10 flex items-center justify-between">
+          <span className="text-2xl font-bold tracking-tighter text-green-900 font-headline">sihatek market</span>
+          <button
+            className="md:hidden p-2 -mr-2 text-stone-500 hover:bg-stone-200 rounded-full transition-colors"
+            onClick={close}
+          >
+            <span className="material-symbols-outlined">close</span>
+          </button>
         </div>
+
+        {/* User card */}
+        <Link
+          href="/main/profile"
+          onClick={close}
+          className="mx-5 -mt-4 mb-4 flex items-center gap-3 p-4 rounded-2xl bg-white border border-stone-100 shadow-sm hover:border-green-200 hover:shadow-md transition-all group"
+        >
+          <Avatar initials={initials} />
+          <div className="min-w-0">
+            <h3 className="font-headline font-bold text-on-surface leading-tight truncate group-hover:text-green-900 transition-colors">
+              {userName}
+            </h3>
+            <p className="text-xs text-stone-400 font-medium truncate">{userEmail}</p>
+          </div>
+          <span className="material-symbols-outlined text-stone-300 group-hover:text-green-700 transition-colors ml-auto shrink-0 text-lg">chevron_right</span>
+        </Link>
+
+        {/* Nav */}
         <nav className="flex-1 px-4 space-y-2">
           {navItems.map((item) => {
             const active = isActive(pathname, item.href);
-
             return (
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={close}
                 className={`flex items-center gap-4 px-6 py-4 rounded-2xl transition-colors duration-300 ${
                   active
                     ? "bg-green-100/60 text-green-900 font-semibold"
@@ -107,18 +135,20 @@ export default function MainSidebar() {
             );
           })}
         </nav>
-        <div className="p-6">
-          <button 
+
+        {/* Footer */}
+        <div className="p-6 space-y-3">
+          <button
             onClick={() => toast("Habit log opened", { description: "Select a habit to record today's progress." })}
-            className="w-full editorial-gradient text-white py-4 px-6 rounded-2xl font-semibold flex items-center justify-center gap-3 wellness-glow scale-98 active:scale-95 transition-transform"
+            className="w-full editorial-gradient text-white py-4 px-6 rounded-2xl font-semibold flex items-center justify-center gap-3 wellness-glow active:scale-95 transition-transform"
           >
             <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 0, 'wght' 600" }}>add</span>
-            {" "}Log a Habit
+            Log a Habit
           </button>
           <button
             type="button"
             onClick={handleLogout}
-            className="mt-3 w-full bg-white text-stone-700 py-3 px-6 rounded-2xl font-semibold border border-slate-200 hover:bg-slate-50 transition-colors"
+            className="w-full bg-white text-stone-700 py-3 px-6 rounded-2xl font-semibold border border-slate-200 hover:bg-slate-50 transition-colors"
           >
             Logout
           </button>

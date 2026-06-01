@@ -5,7 +5,7 @@ export default function Assessment() {
       <div className="fixed bottom-0 left-0 -z-10 w-100 h-100 bg-secondary-container/20 rounded-full blur-[80px] pointer-events-none"></div>
 
       <header className="sticky top-0 w-full z-50 flex justify-between items-center px-6 md:px-10 py-6 bg-white/80 backdrop-blur-xl">
-         <h1 className="text-xl font-bold text-green-900 font-headline tracking-tight">The Mindful Editorial</h1>
+         <h1 className="text-xl font-bold text-green-900 font-headline tracking-tight">sihatek market</h1>
       </header>
       
       <main className="min-h-[calc(100vh-100px)] flex flex-col items-center px-6 py-12 md:py-20 w-full mx-auto">

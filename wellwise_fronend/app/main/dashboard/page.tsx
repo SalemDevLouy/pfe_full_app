@@ -1,15 +1,28 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
+function getGreeting(name: string): string {
+  const hour = new Date().getHours();
+  const first = name.split(" ")[0];
+  if (hour < 12) return `Good morning, ${first}.`;
+  if (hour < 18) return `Good afternoon, ${first}.`;
+  return `Good evening, ${first}.`;
+}
+
 export default function Dashboard() {
+  const { data: session } = useSession();
+  const userName = session?.user?.name ?? "there";
+  const greeting = getGreeting(userName);
+
   return (
     <>
       {/* Greeting & Metrics Bento Grid */}
       <section className="mb-12">
         <div className="flex flex-col gap-1 mb-10 mt-6">
           <span className="font-label uppercase tracking-widest text-[10px] text-primary font-bold">Daily Overview</span>
-          <h2 className="font-headline text-5xl font-extrabold tracking-tight text-on-surface">Good morning, Alex.</h2>
+          <h2 className="font-headline text-5xl font-extrabold tracking-tight text-on-surface">{greeting}</h2>
         </div>
         <div className="grid grid-cols-12 gap-6">
           {/* Core Score: Stress */}
@@ -73,7 +86,7 @@ export default function Dashboard() {
           </div>
         </div>
       </section>
-      
+
       {/* Today's Plan: Editorial Layout */}
       <section className="mb-16">
         <div className="flex justify-between items-end mb-8">
@@ -102,7 +115,7 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-          
+
           {/* Day Card */}
           <div className="group cursor-pointer mt-0 md:mt-12" onClick={() => toast.info("Opening Deep Work Cycle settings")}>
             <div className="relative overflow-hidden mb-6 wellness-glow" style={{ aspectRatio: "4 / 5", borderRadius: "2rem" }}>
@@ -121,7 +134,7 @@ export default function Dashboard() {
                </div>
             </div>
           </div>
-          
+
           {/* Night Card */}
           <div className="group cursor-pointer" onClick={() => toast.info("Preparing Digital Sunset routine")}>
              <div className="relative overflow-hidden mb-6 wellness-glow" style={{ aspectRatio: "4 / 5", borderRadius: "2rem" }}>
@@ -143,7 +156,7 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* AI Insight Toast (Pinned behavior mapped to a fixed element on page) */}
+      {/* AI Insight */}
       <div className="fixed bottom-10 left-1/2 -translate-x-1/2 glass-panel py-4 px-8 rounded-full wellness-glow flex items-center gap-4 border border-outline-variant/15 max-w-xl w-[calc(100%-2rem)] z-50">
         <div className="w-10 h-10 editorial-gradient rounded-full flex items-center justify-center" style={{ flexShrink: 0 }}>
           <span className="material-symbols-outlined text-white text-xl" style={{fontVariationSettings: "'FILL' 1"}}>auto_awesome</span>
@@ -153,7 +166,7 @@ export default function Dashboard() {
             <span className="font-bold">AI Insight:</span> Your focus peaked yesterday after the 10-minute breath-work. Want to schedule one before your big meeting at 2 PM?
           </p>
         </div>
-        <button 
+        <button
           onClick={() => toast.success("Breath-work scheduled for 1:50 PM!", { description: "We'll remind you 5 minutes before." })}
           className="bg-primary-container text-on-primary-container px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap hover:opacity-90 transition-opacity"
         >
@@ -161,5 +174,5 @@ export default function Dashboard() {
         </button>
       </div>
     </>
-  )
+  );
 }

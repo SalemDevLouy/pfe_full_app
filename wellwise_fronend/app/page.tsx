@@ -7,7 +7,7 @@ export default function Home() {
       <header className="sticky top-0 w-full z-50 flex justify-between items-center px-6 py-4 bg-white/80 dark:bg-stone-950/80 backdrop-blur-xl no-border tonal-shift">
         <div className="flex items-center gap-4">
           <span className="material-symbols-outlined text-green-800 dark:text-green-400">spa</span>
-          <h1 className="text-xl font-bold text-green-900 dark:text-green-500 font-headline tracking-tighter">The Mindful Editorial</h1>
+          <h1 className="text-xl font-bold text-green-900 dark:text-green-500 font-headline tracking-tighter">sihatek market</h1>
         </div>
         <div className="flex items-center gap-6">
           <nav className="hidden md:flex gap-8 items-center">
@@ -253,7 +253,7 @@ export default function Home() {
       <footer className="bg-stone-900 text-stone-400 py-24 px-6 md:px-24">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-16">
           <div className="col-span-1 md:col-span-2">
-            <h2 className="text-2xl font-bold tracking-tighter text-green-500 font-headline mb-8">The Mindful Editorial</h2>
+            <h2 className="text-2xl font-bold tracking-tighter text-green-500 font-headline mb-8">sihatek market</h2>
             <p className="max-w-sm text-stone-500 leading-relaxed">
               A new paradigm in personal health. We combine artificial intelligence with human-centric design to create a sanctuary for your well-being.
             </p>
@@ -276,7 +276,7 @@ export default function Home() {
           </div>
         </div>
         <div className="mt-24 pt-8 border-t border-stone-800 flex flex-col md:flex-row justify-between gap-4 text-[10px] font-label uppercase tracking-widest opacity-50">
-          <p>© 2024 The Mindful Editorial. All Rights Reserved.</p>
+          <p>© 2024 sihatek market. All Rights Reserved.</p>
           <div className="flex gap-8">
             <Link href="/main/profile">Terms</Link>
             <Link href="/main/profile">Privacy</Link>

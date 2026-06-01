@@ -16,7 +16,7 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "The Mindful Editorial",
+  title: "sihatek market",
   description: "Your digital sanctuary for personalized care",
 };
 

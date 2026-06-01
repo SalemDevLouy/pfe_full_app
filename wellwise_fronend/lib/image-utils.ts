@@ -29,8 +29,8 @@ export function getProductImageUrl(product: any, index = 0) {
     i.url !== 'https://cloudinary.images-iherb.com/image/upload/f_auto'
   );
 
-  const preferredImg = validImages.find((i: any) => i.url.startsWith('q_auto') || i.url.includes('images/')) 
-                   || validImages.find((i: any) => i.url.startsWith('http'));
+  const preferredImg = validImages.find((i: any) => i.url && (i.url.startsWith('q_auto') || i.url.includes('images/'))) 
+                   || validImages.find((i: any) => i.url && i.url.startsWith('http'));
 
   if (preferredImg) {
     let url = preferredImg.url;

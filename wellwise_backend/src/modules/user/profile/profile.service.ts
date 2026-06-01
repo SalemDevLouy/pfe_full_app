@@ -26,25 +26,28 @@ export class ProfileService {
 
   async getProfile(accessToken: string) {
     const userId = this.resolveUserId(accessToken);
-    
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        age: true,
-        gender: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
 
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
+    const [user, orderCount, reviewCount, wishlistCount] = await Promise.all([
+      this.prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          age: true,
+          gender: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+      this.prisma.order.count({ where: { userId } }),
+      this.prisma.review.count({ where: { userId } }),
+      this.prisma.wishlistItem.count({ where: { userId } }),
+    ]);
 
-    return user;
+    if (!user) throw new UnauthorizedException('User not found');
+
+    return { ...user, orderCount, reviewCount, wishlistCount };
   }
 
   async updateProfile(accessToken: string, updateProfileDto: UpdateProfileDto) {

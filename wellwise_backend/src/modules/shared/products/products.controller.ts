@@ -11,12 +11,18 @@ export class ProductsController {
     @Query('take') take?: number,
     @Query('featured') featured?: string,
     @Query('trending') trending?: string,
+    @Query('id') id?: string,
+    @Query('search') search?: string,
+    @Query('category') category?: string,
   ) {
     return this.productsService.list({
       skip: skip ? parseInt(String(skip), 10) : 0,
       take: take ? parseInt(String(take), 10) : 20,
       featured: featured === 'true',
       trending: trending === 'true',
+      id,
+      search: search || undefined,
+      category: category || undefined,
     });
   }
 
